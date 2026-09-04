@@ -5,6 +5,10 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import fs from 'node:fs';
+import dns from 'node:dns';
+
+// Force IPv4 first to prevent 15+ minute DNS resolution hangs on Linux VPS
+dns.setDefaultResultOrder('ipv4first');
 
 // Handle network disconnects gracefully
 process.on('uncaughtException', (err: any) => {
