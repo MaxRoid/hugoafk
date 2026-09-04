@@ -228,13 +228,18 @@ export class MineflayerBot extends EventEmitter {
       connect: (client: any) => {
         this.log('INFO', `Verbinde TCP Socket mit ${targetHost}:${targetPort}...`);
         const socket = net.connect(targetPort, targetHost);
-        socket.on('connect', () => {
+        client.setSocket(socket);
+        if (socket.connecting) {
+          socket.on('connect', () => {
+            this.log('INFO', `TCP-Verbindung hergestellt! Sende Minecraft-Handshake...`);
+          });
+        } else {
           this.log('INFO', `TCP-Verbindung hergestellt! Sende Minecraft-Handshake...`);
-        });
+          client.emit('connect');
+        }
         socket.on('error', (err: any) => {
           this.log('ERROR', `TCP-Verbindungsfehler zu ${targetHost}:${targetPort}: ${err?.message || err}`);
         });
-        client.setSocket(socket);
       },
       username: validUsername,
       auth: this.authMethod === 'Microsoft' ? 'microsoft' : 'offline',
@@ -282,6 +287,27 @@ export class MineflayerBot extends EventEmitter {
         const playerName = session?.selectedProfile?.name || this.name;
         this.log('INFO', `Microsoft-Login erfolgreich bestätigt! Angemeldet als "${playerName}". Verbinde mit Server...`);
         this.emit('client:update', { clientId: this.id, deviceCode: null });
+      });
+
+      this.bot._client.on('encryption_begin', () => {
+        this.log('INFO', 'Server fordert Verschlüsselung an. Authentifiziere Sitzung mit Mojang...');
+      });
+
+      this.bot._client.on('packet', (data: any, meta: any) => {
+        if (meta.name === 'disconnect' || meta.name === 'kick_disconnect') {
+          let reason = data?.reason;
+          try {
+            if (typeof reason === 'string') {
+              try {
+                const parsed = JSON.parse(reason);
+                reason = parsed.text || parsed.extra?.map((e: any) => e.text).join('') || reason;
+              } catch {}
+            } else if (typeof reason === 'object') {
+              reason = reason.text || reason.extra?.map((e: any) => e.text).join('') || JSON.stringify(reason);
+            }
+          } catch {}
+          this.log('WARN', `Server-Meldung (Disconnect): ${reason || JSON.stringify(data)}`);
+        }
       });
     }
 
