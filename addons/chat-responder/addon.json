@@ -1,0 +1,36 @@
+{
+  "id": "chat-responder",
+  "name": "Smart Chat Responder",
+  "version": "1.0.0",
+  "author": "HugoAFK Community",
+  "description": "Antwortet automatisch auf konfigurierbare Chat-Trigger und Befehle mit dynamischen Variablen.",
+  "category": "Utility",
+  "tags": ["Chat", "Plug & Play", "AutoReply", "Interactive"],
+  "icon": "MessageSquare",
+  "entry": "index.js",
+  "configSchema": [
+    {
+      "key": "triggerWord",
+      "label": "Chat Trigger-Wort / Befehl",
+      "type": "text",
+      "defaultValue": "!hugo",
+      "description": "Nachricht, auf die der Bot reagiert"
+    },
+    {
+      "key": "replyMessage",
+      "label": "Antwort-Nachricht",
+      "type": "text",
+      "defaultValue": "Hallo {player}! Ich bin {bot}, online via HugoAFK (Ping: {ping}ms).",
+      "description": "Verfügbar: {player}, {bot}, {ping}, {time}, {health}"
+    },
+    {
+      "key": "cooldownSeconds",
+      "label": "Abklingzeit / Cooldown (Sekunden)",
+      "type": "number",
+      "defaultValue": 5,
+      "min": 1,
+      "max": 60,
+      "unit": "s"
+    }
+  ]
+}

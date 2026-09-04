@@ -1,0 +1,37 @@
+{
+  "id": "auto-fisher",
+  "name": "Auto Fisher Pro",
+  "version": "1.0.0",
+  "author": "HugoAFK Community",
+  "description": "Automatisiertes Angeln mit automatischer Ruten-Erkennung, Biss-Erkennung und Fang-Statistiken.",
+  "category": "Automation",
+  "tags": ["Fishing", "Plug & Play", "XP", "AFK"],
+  "icon": "Fish",
+  "entry": "index.js",
+  "configSchema": [
+    {
+      "key": "autoReelDelayMs",
+      "label": "Verzögerung nach Biss (ms)",
+      "type": "number",
+      "defaultValue": 250,
+      "min": 50,
+      "max": 1000,
+      "unit": "ms"
+    },
+    {
+      "key": "recastDelayMs",
+      "label": "Pause bis Neuauswurf (ms)",
+      "type": "number",
+      "defaultValue": 1500,
+      "min": 500,
+      "max": 5000,
+      "unit": "ms"
+    },
+    {
+      "key": "logCatches",
+      "label": "Fänge im Bot-Log anzeigen",
+      "type": "boolean",
+      "defaultValue": true
+    }
+  ]
+}

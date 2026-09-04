@@ -1,0 +1,21 @@
+# ========================================================
+# HugoAFK - Production Caddyfile
+# Automatic HTTPS via Let's Encrypt & Zero Configuration
+# ========================================================
+
+yourdomain.com {
+    # Backend REST API
+    handle /api/* {
+        reverse_proxy 127.0.0.1:3001
+    }
+
+    # Socket.IO Real-time Gateway (WebSockets)
+    handle /socket.io/* {
+        reverse_proxy 127.0.0.1:3001
+    }
+
+    # Next.js Web Dashboard
+    handle {
+        reverse_proxy 127.0.0.1:3000
+    }
+}

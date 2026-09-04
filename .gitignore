@@ -1,0 +1,39 @@
+# Abhängigkeiten (Dependencies)
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Next.js Build-Ordner
+frontend/.next/
+frontend/out/
+.next/
+out/
+
+# Backend Build-Ordner
+backend/dist/
+dist/
+
+# Umgebungsvariablen / Geheimnisse (Niemals auf GitHub hochladen!)
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
+
+# Datenbank (Damit deine lokale Datenbank nicht die Server-Datenbank überschreibt)
+data/*.sqlite
+data/*.sqlite-journal
+data/*.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
+
+# ZIP-Archive
+*.zip
+*.tar.gz

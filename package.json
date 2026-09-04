@@ -1,0 +1,21 @@
+{
+  "name": "hugoafk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HugoAFK - Modern Minecraft AFK Bot Management Dashboard",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,emerald\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend run start",
+    "start": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,emerald\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
