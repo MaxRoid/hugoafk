@@ -197,12 +197,17 @@ export const CreateClientModal: React.FC = () => {
               className="w-full rounded-lg bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition-all"
             >
               <option value="Auto-Detect">Auto-Detect (Empfohlen für alle Server)</option>
-              <option value="Minecraft 1.21.4">Minecraft 1.21.4 (Aktuell)</option>
+              <option value="Minecraft 1.21.11">Minecraft 1.21.11 (Latest)</option>
+              <option value="Minecraft 1.21.4">Minecraft 1.21.4</option>
               <option value="Minecraft 1.21.1">Minecraft 1.21.1</option>
               <option value="Minecraft 1.20.4">Minecraft 1.20.4</option>
+              <option value="Minecraft 1.20.1">Minecraft 1.20.1</option>
               <option value="Minecraft 1.19.4">Minecraft 1.19.4</option>
               <option value="Minecraft 1.18.2">Minecraft 1.18.2</option>
+              <option value="Minecraft 1.17.1">Minecraft 1.17.1</option>
               <option value="Minecraft 1.16.5">Minecraft 1.16.5</option>
+              <option value="Minecraft 1.12.2">Minecraft 1.12.2</option>
+              <option value="Minecraft 1.8.9">Minecraft 1.8.9</option>
             </select>
           </div>
 

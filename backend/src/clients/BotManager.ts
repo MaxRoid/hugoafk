@@ -152,7 +152,7 @@ export class BotManager extends EventEmitter {
   }): Promise<any> {
     const id = `bot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const port = Number(data.port) || 25565;
-    const version = data.version || 'Minecraft 1.21.11';
+    const version = data.version || 'Minecraft 1.21.4';
     const authMethod = data.authMethod || 'Microsoft';
     const now = new Date().toISOString();
 

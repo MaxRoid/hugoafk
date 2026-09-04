@@ -135,17 +135,20 @@ export class MineflayerBot extends EventEmitter {
     // Version parsing: if version is 'Auto-Detect', pass version: false so Mineflayer auto-pings and negotiates!
     let mcVersion: string | boolean = false;
     if (this.version && !this.version.toLowerCase().includes('auto')) {
-      if (this.version.includes('1.21.4') || this.version.includes('1.21')) {
-        mcVersion = '1.21.4';
-      } else if (this.version.includes('1.20.4') || this.version.includes('1.20')) {
-        mcVersion = '1.20.4';
-      } else if (this.version.includes('1.19')) {
-        mcVersion = '1.19.4';
-      } else if (this.version.includes('1.18')) {
-        mcVersion = '1.18.2';
-      } else if (this.version.includes('1.16')) {
-        mcVersion = '1.16.5';
-      }
+      const v = this.version;
+      if (v.includes('1.21.11')) mcVersion = '1.21.4'; // Fallback to 1.21.4 since .11 doesn't exist
+      else if (v.includes('1.21.4')) mcVersion = '1.21.4';
+      else if (v.includes('1.21.1')) mcVersion = '1.21.1';
+      else if (v.includes('1.21')) mcVersion = '1.21.4';
+      else if (v.includes('1.20.4')) mcVersion = '1.20.4';
+      else if (v.includes('1.20.1')) mcVersion = '1.20.1';
+      else if (v.includes('1.20')) mcVersion = '1.20.4';
+      else if (v.includes('1.19')) mcVersion = '1.19.4';
+      else if (v.includes('1.18')) mcVersion = '1.18.2';
+      else if (v.includes('1.17')) mcVersion = '1.17.1';
+      else if (v.includes('1.16')) mcVersion = '1.16.5';
+      else if (v.includes('1.12')) mcVersion = '1.12.2';
+      else if (v.includes('1.8')) mcVersion = '1.8.9';
     }
 
     const botOptions: any = {
