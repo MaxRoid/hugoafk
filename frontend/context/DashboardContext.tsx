@@ -202,6 +202,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [confirmModal, setConfirmModal] = useState<ConfirmModalState | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
+  const popupShownRef = useRef<Set<string>>(new Set());
 
   // Toast Helper
   const addToast = useCallback(
@@ -314,25 +315,6 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [loadData]);
 
   // Handle missed device codes (e.g. on page refresh)
-  const popupShownRef = useRef<Set<string>>(new Set());
-  
-  useEffect(() => {
-    const waitingClient = clients.find(c => c.deviceCode && !popupShownRef.current.has(c.id));
-    if (waitingClient && waitingClient.deviceCode) {
-      popupShownRef.current.add(waitingClient.id);
-      const code = waitingClient.deviceCode.code;
-      const targetUrl = waitingClient.deviceCode.directUrl || `https://www.microsoft.com/link?otc=${code}`;
-      
-      openConfirm({
-        title: '🔑 Microsoft-Anmeldung erforderlich!',
-        description: `Der Bot "${waitingClient.name}" wartet auf deine einmalige Anmeldung bei Microsoft.\n\nCode: ${code}\n\nKlicke auf "Auf Microsoft anmelden", um den Login im Browser zu bestätigen. Sobald du eingeloggt bist, verbindet sich der Bot sofort automatisch!`,
-        confirmLabel: 'Auf Microsoft anmelden',
-        onConfirm: () => {
-          window.open(targetUrl, '_blank');
-        },
-      });
-    }
-  }, [clients, openConfirm]);
 
   // Socket.IO setup for live client updates
   useEffect(() => {
@@ -1081,6 +1063,24 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
       throw err;
     }
   };
+
+  useEffect(() => {
+    const waitingClient = clients.find(c => c.deviceCode && !popupShownRef.current.has(c.id));
+    if (waitingClient && waitingClient.deviceCode) {
+      popupShownRef.current.add(waitingClient.id);
+      const code = waitingClient.deviceCode.code;
+      const targetUrl = waitingClient.deviceCode.directUrl || `https://www.microsoft.com/link?otc=${code}`;
+      
+      openConfirm({
+        title: '🔑 Microsoft-Anmeldung erforderlich!',
+        description: `Der Bot "${waitingClient.name}" wartet auf deine einmalige Anmeldung bei Microsoft.\n\nCode: ${code}\n\nKlicke auf "Auf Microsoft anmelden", um den Login im Browser zu bestätigen. Sobald du eingeloggt bist, verbindet sich der Bot sofort automatisch!`,
+        confirmLabel: 'Auf Microsoft anmelden',
+        onConfirm: () => {
+          window.open(targetUrl, '_blank');
+        },
+      });
+    }
+  }, [clients]);
 
   return (
     <DashboardContext.Provider
