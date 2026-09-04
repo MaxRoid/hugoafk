@@ -174,7 +174,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
 
         {/* Status / Kick Alert (if not online) */}
         {lastErrorOrWarn && (
-          <div className="mt-3 p-2.5 rounded-lg bg-red-950/30 border border-red-900/50 text-[11px] text-red-300">
+          <div 
+            className="mt-3 p-2.5 rounded-lg bg-red-950/30 border border-red-900/50 text-[11px] text-red-300 cursor-help"
+            title={lastErrorOrWarn.message}
+          >
             <div className="flex items-center gap-1 font-semibold text-[10px] uppercase tracking-wider text-red-400">
               <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
               <span>Server-Meldung</span>
