@@ -320,14 +320,19 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   useEffect(() => {
     if (!currentUser) return;
 
-    // Connect to backend websocket on port 3001
-    const socketHost =
-      typeof window !== 'undefined'
-        ? `${window.location.protocol}//${window.location.hostname}:3001`
-        : 'http://localhost:3001';
+    const token = localStorage.getItem('hugoafk_token');
+    
+    // In production, Next.js rewrites drop WebSocket upgrades! 
+    // So we connect directly to the backend port 3001.
+    let socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+    if (!socketUrl && typeof window !== 'undefined') {
+      const isHttps = window.location.protocol === 'https:';
+      socketUrl = `${isHttps ? 'https' : 'http'}://${window.location.hostname}:3001`;
+    }
 
-    const socket = io(socketHost, {
+    const socket = io(socketUrl, {
       path: '/socket.io',
+      auth: { token },
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
     });
