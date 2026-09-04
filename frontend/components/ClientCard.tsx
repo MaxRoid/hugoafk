@@ -29,6 +29,7 @@ interface ClientCardProps {
 export const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
   const {
     setActiveView,
+    setActiveTab,
     startClient,
     stopClient,
     restartClient,
@@ -195,7 +196,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
         <button
           id={`manage-client-btn-${client.id}`}
           type="button"
-          onClick={() => setActiveView('client-detail', client.id)}
+          onClick={() => {
+            setActiveView('client-detail', client.id);
+            setActiveTab('logs');
+          }}
           className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700/80 transition-colors"
         >
           <ExternalLink className="w-3 h-3" />
