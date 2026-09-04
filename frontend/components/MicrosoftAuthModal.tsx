@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useDashboard } from '@/context/DashboardContext';
-import { ExternalLink, Copy, Check, Key, Loader2, X } from 'lucide-react';
+import { ExternalLink, Copy, Check, Key, Loader2, X, Smartphone } from 'lucide-react';
 
 export const MicrosoftAuthModal: React.FC = () => {
   const { clients } = useDashboard();
@@ -106,9 +106,32 @@ export const MicrosoftAuthModal: React.FC = () => {
           onClick={handleOpenAuth}
           className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 active:scale-[0.99] text-zinc-950 font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all mb-3"
         >
-          <span>Auf Microsoft anmelden</span>
+          <span>Auf diesem Gerät anmelden</span>
           <ExternalLink className="w-4 h-4" />
         </button>
+
+        {/* Mobile / Smartphone Option with QR Code */}
+        <div className="pt-3 border-t border-zinc-800/80">
+          <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-zinc-900/60 border border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-zinc-800 text-amber-400">
+                <Smartphone className="w-4 h-4" />
+              </div>
+              <div className="text-left">
+                <span className="text-xs font-semibold text-zinc-200 block">Über das Smartphone anmelden?</span>
+                <span className="text-[11px] text-zinc-400 block">
+                  QR-Code mit Handy scannen oder <strong>microsoft.com/link</strong> öffnen
+                </span>
+              </div>
+            </div>
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=${encodeURIComponent(targetUrl)}&bgcolor=24-24-27&color=251-191-36`}
+              alt="Microsoft Login QR Code"
+              className="w-16 h-16 rounded-xl border border-zinc-700/60 p-1 bg-zinc-900 shrink-0"
+              title="Mit Handy scannen"
+            />
+          </div>
+        </div>
 
         {/* Live waiting indicator */}
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium py-1">
