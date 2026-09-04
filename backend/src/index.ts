@@ -11,6 +11,7 @@ import dns from 'node:dns';
 try {
   dns.setDefaultResultOrder('ipv4first');
   dns.setServers(['1.1.1.1', '8.8.8.8', '8.8.4.4']);
+  https.globalAgent.options.family = 4;
 } catch {}
 
 // Handle network disconnects gracefully

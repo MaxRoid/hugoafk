@@ -3,6 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import net from 'node:net';
 import dns from 'node:dns';
+import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { db } from '../database/db.js';
 import { addonManager } from '../addons/AddonManager.js';
@@ -243,6 +244,7 @@ export class MineflayerBot extends EventEmitter {
       },
       username: validUsername,
       auth: this.authMethod === 'Microsoft' ? 'microsoft' : 'offline',
+      agent: new https.Agent({ family: 4, keepAlive: true }),
       profilesFolder: authCacheDir,
       checkTimeoutInterval: 60000,
       onMsaCode: (data: any) => {
@@ -282,6 +284,10 @@ export class MineflayerBot extends EventEmitter {
     if (!this.bot) return;
 
     if (this.bot._client) {
+      this.bot._client.on('state', (newState: string) => {
+        this.log('INFO', `Minecraft Protokoll-Phase: ${newState.toUpperCase()}`);
+      });
+
       this.bot._client.on('session', (session: any) => {
         this.pendingDeviceCode = null;
         const playerName = session?.selectedProfile?.name || this.name;
@@ -294,6 +300,15 @@ export class MineflayerBot extends EventEmitter {
       });
 
       this.bot._client.on('packet', (data: any, meta: any) => {
+        if (meta.name === 'success' || meta.name === 'login_success') {
+          this.log('INFO', 'Mojang-Authentifizierung von HugoSMP akzeptiert! Lade Server-Welt...');
+        }
+        if (meta.name === 'finish_configuration') {
+          this.log('INFO', 'Server-Konfiguration abgeschlossen. Wechsle in Spielmodus...');
+        }
+        if (meta.name === 'login') {
+          this.log('INFO', 'Spielwelt-Login empfangen! Lade Chunks & Spawne Bot-Entität...');
+        }
         if (meta.name === 'disconnect' || meta.name === 'kick_disconnect') {
           let reason = data?.reason;
           try {
