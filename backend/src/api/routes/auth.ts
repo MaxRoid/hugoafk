@@ -148,8 +148,8 @@ authRouter.post('/logout', (_req: Request, res: Response) => {
 
 // Real Discord OAuth: GET /api/auth/discord
 authRouter.get('/discord', (req: Request, res: Response) => {
-  const origin = `${req.protocol}://${req.get('host')}`;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const origin = frontendUrl;
 
   if (!isDiscordConfigured()) {
     res.redirect(`${frontendUrl}/?error=discord_oauth_not_configured`);
@@ -163,8 +163,8 @@ authRouter.get('/discord', (req: Request, res: Response) => {
 // Real Discord OAuth Callback: GET /api/auth/discord/callback
 authRouter.get('/discord/callback', async (req: Request, res: Response) => {
   const code = req.query.code as string;
-  const origin = `${req.protocol}://${req.get('host')}`;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const origin = frontendUrl;
 
   if (!code) {
     res.redirect(`${frontendUrl}/?error=no_code_provided`);
@@ -182,8 +182,8 @@ authRouter.get('/discord/callback', async (req: Request, res: Response) => {
 
 // Real Google OAuth: GET /api/auth/google
 authRouter.get('/google', (req: Request, res: Response) => {
-  const origin = `${req.protocol}://${req.get('host')}`;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const origin = frontendUrl;
 
   if (!isGoogleConfigured()) {
     res.redirect(`${frontendUrl}/?error=google_oauth_not_configured`);
@@ -197,8 +197,8 @@ authRouter.get('/google', (req: Request, res: Response) => {
 // Real Google OAuth Callback: GET /api/auth/google/callback
 authRouter.get('/google/callback', async (req: Request, res: Response) => {
   const code = req.query.code as string;
-  const origin = `${req.protocol}://${req.get('host')}`;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const origin = frontendUrl;
 
   if (!code) {
     res.redirect(`${frontendUrl}/?error=no_code_provided`);
