@@ -280,12 +280,55 @@ export class MineflayerBot extends EventEmitter {
     }
   }
 
+  private hasSpawned: boolean = false;
+
+  private setOnline() {
+    if (this.status === 'online') return;
+    this.status = 'online';
+    this.updateDbStatus('online');
+    this.emit('status', { clientId: this.id, status: 'online' });
+  }
+
+  private startRuntimeTimer() {
+    if (this.runtimeTimer) return;
+    this.runtimeTimer = setInterval(() => {
+      this.runtimeSeconds++;
+      this.ping = this.bot?.player?.ping || Math.floor(10 + Math.random() * 15);
+      this.emit('stats', {
+        clientId: this.id,
+        ping: this.ping,
+        runtimeSeconds: this.runtimeSeconds,
+        health: this.health,
+        food: this.food,
+      });
+
+      // Periodic db save every 30s
+      if (this.runtimeSeconds % 30 === 0) {
+        try {
+          db.prepare('UPDATE clients SET runtime_seconds = ?, ping = ? WHERE id = ?').run(
+            this.runtimeSeconds,
+            this.ping,
+            this.id
+          );
+        } catch {}
+      }
+    }, 1000);
+  }
+
   private setupBotListeners() {
     if (!this.bot) return;
+    this.hasSpawned = false;
 
     if (this.bot._client) {
       this.bot._client.on('state', (newState: string) => {
         this.log('INFO', `Minecraft Protokoll-Phase: ${newState.toUpperCase()}`);
+
+        // As soon as protocol enters PLAY state, the bot IS on the server
+        if (newState === 'play') {
+          this.log('INFO', `Bot ist jetzt auf dem Server! (Play-State erreicht)`);
+          this.setOnline();
+          this.startRuntimeTimer();
+        }
       });
 
       this.bot._client.on('session', (session: any) => {
@@ -326,10 +369,13 @@ export class MineflayerBot extends EventEmitter {
       });
     }
 
+    // Mineflayer login event: bot entered play state
     this.bot.on('login', () => {
       this.pendingDeviceCode = null;
-      this.log('INFO', `Handshake successful. Joining world (${this.server}:${this.port})...`);
-      
+      this.log('INFO', `Erfolgreich mit ${this.server}:${this.port} verbunden! Bot ist Online.`);
+      this.setOnline();
+      this.startRuntimeTimer();
+
       // Save copy of valid tokens to shared cache so any future bot can reuse this login
       try {
         const baseDataDir = fs.existsSync(path.resolve(process.cwd(), 'data'))
@@ -347,49 +393,26 @@ export class MineflayerBot extends EventEmitter {
       } catch {}
     });
 
+    // Mineflayer spawn event: bot entity exists in the world — initialize addons, inventory, position
     this.bot.on('spawn', () => {
-      this.status = 'online';
-      this.updateDbStatus('online');
-      this.log('INFO', `Bot entity spawned in world (${this.bot.game?.dimension || 'overworld'}). Online!`);
-      this.emit('status', { clientId: this.id, status: 'online' });
-
-      // Start uptime counter
-      if (this.runtimeTimer) clearInterval(this.runtimeTimer);
-      this.runtimeTimer = setInterval(() => {
-        this.runtimeSeconds++;
-        this.ping = this.bot?.player?.ping || Math.floor(10 + Math.random() * 15);
-        this.emit('stats', {
-          clientId: this.id,
-          ping: this.ping,
-          runtimeSeconds: this.runtimeSeconds,
-          health: this.health,
-          food: this.food,
-        });
-
-        // Periodic db save every 30s
-        if (this.runtimeSeconds % 30 === 0) {
-          try {
-            db.prepare('UPDATE clients SET runtime_seconds = ?, ping = ? WHERE id = ?').run(
-              this.runtimeSeconds,
-              this.ping,
-              this.id
-            );
-          } catch {}
-        }
-      }, 1000);
+      this.setOnline();
+      this.log('INFO', `Bot-Entität gespawnt in Welt (${this.bot.game?.dimension || 'overworld'}).`);
 
       this.updatePosition();
       this.emitInventory();
 
-      // Initialize all active addons for this client
-      addonManager.startAddonsForBot(
-        this.id,
-        this.name,
-        this.bot,
-        this,
-        (addonName) => this.createAddonLogger(addonName),
-        (msg) => this.sendChat(msg)
-      );
+      // Only initialize addons on first spawn (not on respawn)
+      if (!this.hasSpawned) {
+        this.hasSpawned = true;
+        addonManager.startAddonsForBot(
+          this.id,
+          this.name,
+          this.bot,
+          this,
+          (addonName) => this.createAddonLogger(addonName),
+          (msg) => this.sendChat(msg)
+        );
+      }
     });
 
     this.bot.on('messagestr', (message: string, position: string) => {
