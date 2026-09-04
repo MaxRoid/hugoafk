@@ -224,6 +224,18 @@ export class MineflayerBot extends EventEmitter {
     const botOptions: any = {
       host: targetHost,
       port: targetPort,
+      fakeHost: this.server,
+      connect: (client: any) => {
+        this.log('INFO', `Verbinde TCP Socket mit ${targetHost}:${targetPort}...`);
+        const socket = net.connect(targetPort, targetHost);
+        socket.on('connect', () => {
+          this.log('INFO', `TCP-Verbindung hergestellt! Sende Minecraft-Handshake...`);
+        });
+        socket.on('error', (err: any) => {
+          this.log('ERROR', `TCP-Verbindungsfehler zu ${targetHost}:${targetPort}: ${err?.message || err}`);
+        });
+        client.setSocket(socket);
+      },
       username: validUsername,
       auth: this.authMethod === 'Microsoft' ? 'microsoft' : 'offline',
       profilesFolder: authCacheDir,
