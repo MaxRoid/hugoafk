@@ -1,6 +1,8 @@
 import mineflayer from 'mineflayer';
 import path from 'node:path';
 import fs from 'node:fs';
+import net from 'node:net';
+import dns from 'node:dns';
 import { EventEmitter } from 'node:events';
 import { db } from '../database/db.js';
 import { addonManager } from '../addons/AddonManager.js';
@@ -130,6 +132,67 @@ export class MineflayerBot extends EventEmitter {
       fs.mkdirSync(authCacheDir, { recursive: true });
     }
 
+    if (this.authMethod === 'Microsoft') {
+      // Check if this bot already has valid cached tokens
+      const currentFiles = fs.existsSync(authCacheDir) ? fs.readdirSync(authCacheDir).filter((f) => f.endsWith('.json')) : [];
+      const hasTokens = currentFiles.some((f) => {
+        try {
+          const content = JSON.parse(fs.readFileSync(path.join(authCacheDir, f), 'utf8'));
+          return content && Object.keys(content).length > 0 && (content.token || content.mca || content.userToken);
+        } catch { return false; }
+      });
+
+      if (!hasTokens) {
+        // Automatically adopt existing Microsoft login from shared cache or any other bot!
+        const allCachesDir = path.join(baseDataDir, 'auth-cache');
+        if (fs.existsSync(allCachesDir)) {
+          const dirs = fs.readdirSync(allCachesDir).filter((d) => d !== this.id && fs.statSync(path.join(allCachesDir, d)).isDirectory());
+          const sortedDirs = dirs.sort((a, b) => (a === 'shared' ? -1 : b === 'shared' ? 1 : 0));
+          for (const dir of sortedDirs) {
+            const candidateDir = path.join(allCachesDir, dir);
+            const candidateFiles = fs.readdirSync(candidateDir).filter((f) => f.endsWith('.json'));
+            const candidateHasTokens = candidateFiles.some((f) => {
+              try {
+                const content = JSON.parse(fs.readFileSync(path.join(candidateDir, f), 'utf8'));
+                return content && Object.keys(content).length > 0 && (content.token || content.mca || content.userToken);
+              } catch { return false; }
+            });
+
+            if (candidateHasTokens) {
+              for (const file of candidateFiles) {
+                try {
+                  fs.copyFileSync(path.join(candidateDir, file), path.join(authCacheDir, file));
+                } catch {}
+              }
+              this.log('INFO', `Vorhandener Microsoft-Login gefunden. Sitzung automatisch übernommen!`);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Fast SRV pre-resolution with 3-second timeout to prevent 15-minute connection hangs
+    let targetHost = this.server;
+    let targetPort = this.port;
+
+    if (net.isIP(targetHost) === 0 && targetHost !== 'localhost') {
+      try {
+        const srvPromise = dns.promises.resolveSrv(`_minecraft._tcp.${targetHost}`);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SRV timeout')), 3000)
+        );
+        const addresses = (await Promise.race([srvPromise, timeoutPromise])) as dns.SrvRecord[];
+        if (addresses && addresses.length > 0) {
+          targetHost = addresses[0].name;
+          targetPort = addresses[0].port;
+          this.log('INFO', `SRV-Record aufgelöst: ${this.server} -> ${targetHost}:${targetPort}`);
+        }
+      } catch {
+        // Fallback to direct host:port immediately without hanging
+      }
+    }
+
     // Sanitize username for Minecraft protocol (max 16 chars, alphanumeric and underscore)
     let validUsername = this.name.replace(/[^a-zA-Z0-9_]/g, '');
     if (validUsername.length > 16) {
@@ -159,8 +222,8 @@ export class MineflayerBot extends EventEmitter {
     }
 
     const botOptions: any = {
-      host: this.server,
-      port: this.port,
+      host: targetHost,
+      port: targetPort,
       username: validUsername,
       auth: this.authMethod === 'Microsoft' ? 'microsoft' : 'offline',
       profilesFolder: authCacheDir,
@@ -204,6 +267,22 @@ export class MineflayerBot extends EventEmitter {
     this.bot.on('login', () => {
       this.pendingDeviceCode = null;
       this.log('INFO', `Handshake successful. Joining world (${this.server}:${this.port})...`);
+      
+      // Save copy of valid tokens to shared cache so any future bot can reuse this login
+      try {
+        const baseDataDir = fs.existsSync(path.resolve(process.cwd(), 'data'))
+          ? path.resolve(process.cwd(), 'data')
+          : path.resolve(process.cwd(), '../data');
+        const authCacheDir = path.join(baseDataDir, 'auth-cache', this.id);
+        const sharedDir = path.join(baseDataDir, 'auth-cache', 'shared');
+        if (!fs.existsSync(sharedDir)) fs.mkdirSync(sharedDir, { recursive: true });
+        if (fs.existsSync(authCacheDir)) {
+          const files = fs.readdirSync(authCacheDir).filter((f) => f.endsWith('.json'));
+          for (const file of files) {
+            fs.copyFileSync(path.join(authCacheDir, file), path.join(sharedDir, file));
+          }
+        }
+      } catch {}
     });
 
     this.bot.on('spawn', () => {
@@ -333,15 +412,6 @@ export class MineflayerBot extends EventEmitter {
       const errMsg = err?.message || 'Unknown Mineflayer error';
       if (errMsg.includes('does the account own minecraft')) {
         this.log('ERROR', `[AUTH HINWEIS] Der angemeldete Microsoft-Account besitzt keine Minecraft Java Edition Lizenz! Bitte nutze das Microsoft-Konto, auf dem Minecraft gekauft wurde, oder starte einen Bot im Offline/Cracked-Modus.`);
-        try {
-          const baseDataDir = fs.existsSync(path.resolve(process.cwd(), 'data'))
-            ? path.resolve(process.cwd(), 'data')
-            : path.resolve(process.cwd(), '../data');
-          const authCacheDir = path.join(baseDataDir, 'auth-cache', this.id);
-          if (fs.existsSync(authCacheDir)) {
-            fs.rmSync(authCacheDir, { recursive: true, force: true });
-          }
-        } catch {}
       } else if (errMsg.includes('ECONNRESET')) {
         this.log('WARN', `Verbindung vom Server abrupt beendet (ECONNRESET).`);
       } else {

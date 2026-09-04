@@ -314,7 +314,14 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     loadData();
   }, [loadData]);
 
-  // Handle missed device codes (e.g. on page refresh)
+  // Periodic background sync: keeps dashboard in sync (clients, logs, device codes, nodes) even if websocket drops
+  useEffect(() => {
+    if (!currentUser) return;
+    const interval = setInterval(() => {
+      loadData();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [currentUser, loadData]);
 
   // Socket.IO setup for live client updates
   useEffect(() => {
@@ -322,19 +329,17 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const token = localStorage.getItem('hugoafk_token');
     
-    // In production, Next.js rewrites drop WebSocket upgrades! 
-    // So we connect directly to the backend port 3001.
+    // Connect to backend websocket gateway.
+    // Using polling first ensures immediate connection through Next.js rewrites,
+    // then seamlessly upgrades to websocket if the network allows.
     let socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    if (!socketUrl && typeof window !== 'undefined') {
-      const isHttps = window.location.protocol === 'https:';
-      socketUrl = `${isHttps ? 'https' : 'http'}://${window.location.hostname}:3001`;
-    }
 
     const socket = io(socketUrl, {
       path: '/socket.io',
       auth: { token },
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
+      transports: ['polling', 'websocket'],
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
     });
     socketRef.current = socket;
 
@@ -617,10 +622,15 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
       prev.map((c) => (c.id === id ? { ...c, status: 'starting' } : c))
     );
     try {
-      await api.clients.start(id);
+      const res = await api.clients.start(id);
+      if (res?.client) {
+        setClients((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, ...res.client } : c))
+        );
+      }
       addToast(
         settings.language === 'de' ? 'Bot wird gestartet' : 'Bot starting',
-        `${client?.name || id} verbindet sich...`,
+        `${res?.client?.name || client?.name || id} verbindet sich...`,
         'info'
       );
     } catch (err: any) {

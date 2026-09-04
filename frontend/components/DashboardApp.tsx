@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { ToastContainer } from '@/components/ToastContainer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { MicrosoftAuthModal } from '@/components/MicrosoftAuthModal';
 import { CreateClientModal } from '@/components/CreateClientModal';
 import { AddonConfigModal } from '@/components/AddonConfigModal';
 import { InstallAddonModal } from '@/components/InstallAddonModal';
@@ -61,6 +62,7 @@ function DashboardAppContent() {
       <InstallAddonModal />
       <AuthModal />
       <ConfirmDialog />
+      <MicrosoftAuthModal />
       <ToastContainer />
     </div>
   );

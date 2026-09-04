@@ -25,6 +25,8 @@ import {
   Terminal,
   Compass,
   Trash2,
+  Key,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -152,6 +154,37 @@ export const ClientDetailView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Microsoft Auth Action Banner */}
+      {selectedClient.deviceCode && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/40 text-amber-300 animate-in fade-in duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+              <Key className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold">Microsoft Login erforderlich</span>
+                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">
+                  {selectedClient.deviceCode.code}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Klicke auf den Button, um den Bot einmalig bei Microsoft freizuschalten.
+              </p>
+            </div>
+          </div>
+          <a
+            href={selectedClient.deviceCode.directUrl || selectedClient.deviceCode.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-zinc-950 text-xs font-bold transition-all shadow-md shrink-0"
+          >
+            <span>Auf Microsoft bestätigen</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      )}
 
       {/* Quick Statistics Horizontal Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 p-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 text-xs font-mono">
