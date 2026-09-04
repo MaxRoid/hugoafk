@@ -7,8 +7,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import dns from 'node:dns';
 
-// Force IPv4 first to prevent 15+ minute DNS resolution hangs on Linux VPS
+// Force IPv4 first and use Google DNS to prevent 15+ minute SRV/DNS resolution hangs on Linux VPS
 dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 // Handle network disconnects gracefully
 process.on('uncaughtException', (err: any) => {
