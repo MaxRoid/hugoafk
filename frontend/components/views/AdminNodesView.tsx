@@ -61,6 +61,7 @@ export const AdminNodesView: React.FC = () => {
     addToast,
     settings,
     t,
+    refreshData,
   } = useDashboard();
 
   const isDe = settings.language === 'de';
@@ -118,7 +119,18 @@ export const AdminNodesView: React.FC = () => {
     if (activeAdminTab === 'system' || activeAdminTab === 'audit') {
       loadDiagnostics();
     }
-  }, [activeAdminTab, loadDiagnostics]);
+    
+    // Polling for live dashboard data
+    const interval = setInterval(() => {
+      if (activeAdminTab === 'nodes') {
+        refreshData();
+      } else if (activeAdminTab === 'system' || activeAdminTab === 'audit') {
+        loadDiagnostics();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [activeAdminTab, refreshData, loadDiagnostics]);
 
   if (!isAdmin) {
     return (

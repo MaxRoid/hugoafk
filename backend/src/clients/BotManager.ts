@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import os from 'node:os';
 import { db } from '../database/db.js';
 import { MineflayerBot } from './MineflayerBot.js';
 import { addonManager } from '../addons/AddonManager.js';
@@ -23,6 +24,23 @@ export class BotManager extends EventEmitter {
         });
       }, 3000);
     }
+
+    // System Monitor Loop for Node Stats (updates every 5s)
+    setInterval(() => {
+      try {
+        const memUsed = Math.round(process.memoryUsage().rss / (1024 * 1024));
+        const memTotal = Math.round(os.totalmem() / (1024 * 1024));
+        
+        const loadAvg = os.loadavg()[0]; 
+        const cpuPercent = Math.min(Math.round((loadAvg / os.cpus().length) * 100), 100);
+
+        db.prepare(`
+          UPDATE nodes 
+          SET bot_count = ?, memory_used_mb = ?, memory_total_mb = ?, cpu_usage = ?, uptime_seconds = ?
+          WHERE id = 'node-local-1'
+        `).run(this.activeBots.size, memUsed, memTotal, cpuPercent, Math.round(process.uptime()));
+      } catch (e) {}
+    }, 5000);
   }
 
   public getBot(id: string): MineflayerBot | undefined {
