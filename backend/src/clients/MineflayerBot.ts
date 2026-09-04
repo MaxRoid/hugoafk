@@ -71,9 +71,16 @@ export class MineflayerBot extends EventEmitter {
     this.runtimeSeconds = clientData.runtimeSeconds || 0;
   }
 
-  public log(level: 'INFO' | 'WARN' | 'ERROR' | 'CHAT' | 'DEBUG', message: string) {
+  public log(level: LogLevel, message: string) {
     const timestamp = new Date().toTimeString().split(' ')[0];
     const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+
+    // Mirror to PM2 console for easier debugging
+    if (level === 'ERROR' || level === 'WARN') {
+      console.error(`[${this.name}] [${level}] ${message}`);
+    } else {
+      console.log(`[${this.name}] [${level}] ${message}`);
+    }
 
     try {
       db.prepare(`
