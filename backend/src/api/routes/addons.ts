@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { addonManager } from '../../addons/AddonManager.js';
+import { authenticateToken, requireAdmin } from './auth.js';
 
 export const addonsRouter = Router();
 
 // GET /api/addons
-addonsRouter.get('/', (_req: Request, res: Response) => {
+addonsRouter.get('/', authenticateToken, (_req: Request, res: Response) => {
   try {
     const addons = addonManager.getAvailableAddons();
     res.json({ addons });
@@ -14,7 +15,7 @@ addonsRouter.get('/', (_req: Request, res: Response) => {
 });
 
 // POST /api/addons/:id/install
-addonsRouter.post('/:id/install', (req: Request, res: Response) => {
+addonsRouter.post('/:id/install', requireAdmin, (req: Request, res: Response) => {
   try {
     const { clientIds, config } = req.body;
     if (!clientIds || !Array.isArray(clientIds)) {
@@ -33,7 +34,7 @@ addonsRouter.post('/:id/install', (req: Request, res: Response) => {
 });
 
 // POST /api/addons/:id/uninstall
-addonsRouter.post('/:id/uninstall', (req: Request, res: Response) => {
+addonsRouter.post('/:id/uninstall', requireAdmin, (req: Request, res: Response) => {
   try {
     const { clientId } = req.body;
     if (!clientId) {
@@ -49,7 +50,7 @@ addonsRouter.post('/:id/uninstall', (req: Request, res: Response) => {
 });
 
 // POST /api/addons/:id/toggle
-addonsRouter.post('/:id/toggle', (req: Request, res: Response) => {
+addonsRouter.post('/:id/toggle', requireAdmin, (req: Request, res: Response) => {
   try {
     const { clientId, enabled } = req.body;
     if (!clientId || enabled === undefined) {
@@ -65,7 +66,7 @@ addonsRouter.post('/:id/toggle', (req: Request, res: Response) => {
 });
 
 // POST /api/addons/:id/config
-addonsRouter.post('/:id/config', (req: Request, res: Response) => {
+addonsRouter.post('/:id/config', requireAdmin, (req: Request, res: Response) => {
   try {
     const { config, clientId } = req.body;
     if (!config) {
@@ -84,7 +85,7 @@ addonsRouter.post('/:id/config', (req: Request, res: Response) => {
 });
 
 // POST /api/addons/reload
-addonsRouter.post('/reload', async (_req: Request, res: Response) => {
+addonsRouter.post('/reload', requireAdmin, async (_req: Request, res: Response) => {
   try {
     const count = await addonManager.reloadAddons();
     res.json({ success: true, count, message: `Successfully reloaded ${count} addons.` });
@@ -94,7 +95,7 @@ addonsRouter.post('/reload', async (_req: Request, res: Response) => {
 });
 
 // DELETE /api/addons/custom/:id
-addonsRouter.delete('/custom/:id', (req: Request, res: Response) => {
+addonsRouter.delete('/custom/:id', requireAdmin, (req: Request, res: Response) => {
   try {
     const success = addonManager.deleteCustomAddon(req.params.id);
     if (!success) {
@@ -108,7 +109,7 @@ addonsRouter.delete('/custom/:id', (req: Request, res: Response) => {
 });
 
 // POST /api/addons/upload - Install custom plug-and-play addon
-addonsRouter.post('/upload', async (req: Request, res: Response) => {
+addonsRouter.post('/upload', requireAdmin, async (req: Request, res: Response) => {
   try {
     const { folderName, manifest, code } = req.body;
 
@@ -161,7 +162,7 @@ addonsRouter.post('/upload', async (req: Request, res: Response) => {
 });
 
 // GET /api/addons/ai-guide - Return AI prompt and development documentation
-addonsRouter.get('/ai-guide', async (_req: Request, res: Response) => {
+addonsRouter.get('/ai-guide', authenticateToken, async (_req: Request, res: Response) => {
   try {
     const fs = await import('node:fs');
     const path = await import('node:path');

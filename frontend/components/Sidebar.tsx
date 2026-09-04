@@ -42,7 +42,9 @@ export const Sidebar: React.FC = () => {
   const navItems: { id: ViewType; label: string; icon: React.ElementType; badge?: string | number }[] = [
     { id: 'dashboard', label: t('navDashboard'), icon: LayoutDashboard },
     { id: 'clients', label: t('navClients'), icon: Bot, badge: totalClientsCount },
-    { id: 'addons', label: t('navAddons'), icon: Blocks },
+    ...(currentUser?.role === 'admin'
+      ? [{ id: 'addons' as ViewType, label: t('navAddons'), icon: Blocks }]
+      : []),
     { id: 'logs', label: t('navLogs'), icon: Terminal },
     ...(currentUser?.role === 'admin'
       ? [{ id: 'admin-nodes' as ViewType, label: t('navAdminNodes'), icon: Server, badge: nodes.length }]

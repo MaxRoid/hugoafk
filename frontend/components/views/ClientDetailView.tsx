@@ -38,6 +38,7 @@ export const ClientDetailView: React.FC = () => {
     stopClient,
     restartClient,
     deleteClient,
+    currentUser,
   } = useDashboard();
 
   if (!selectedClient) {
@@ -62,7 +63,7 @@ export const ClientDetailView: React.FC = () => {
 
   const tabs: { id: ClientDetailTab; label: string; icon: React.ElementType; count?: number }[] = [
     { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'addons', label: 'Addons', icon: Boxes, count: selectedClient.activeAddons.length },
+    ...(currentUser?.role === 'admin' ? [{ id: 'addons' as ClientDetailTab, label: 'Addons', icon: Boxes, count: selectedClient.activeAddons.length }] : []),
     { id: 'chat', label: 'Chat', icon: MessageSquare, count: selectedClient.chatHistory.length },
     { id: 'inventory', label: 'Inventory', icon: Package, count: selectedClient.inventory.length },
     { id: 'live-view', label: 'Live View', icon: Video },
