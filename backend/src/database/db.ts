@@ -42,7 +42,7 @@ export function initDatabase() {
       name TEXT NOT NULL,
       server TEXT NOT NULL,
       port INTEGER NOT NULL DEFAULT 25565,
-      version TEXT NOT NULL DEFAULT 'Minecraft 1.21.4',
+      version TEXT NOT NULL DEFAULT 'Minecraft 1.21.11',
       auth_method TEXT NOT NULL DEFAULT 'Microsoft',
       status TEXT NOT NULL DEFAULT 'offline',
       ping INTEGER NOT NULL DEFAULT 0,

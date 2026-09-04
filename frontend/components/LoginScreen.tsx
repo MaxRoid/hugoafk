@@ -250,7 +250,7 @@ export const LoginScreen: React.FC = () => {
           <span>•</span>
           <span className="flex items-center gap-1">
             <Server className="w-3 h-3 text-zinc-400" />
-            <span>Mineflayer Core v1.21.4</span>
+            <span>Mineflayer Core v1.21.11</span>
           </span>
         </div>
         <div>

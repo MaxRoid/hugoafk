@@ -136,10 +136,10 @@ export class MineflayerBot extends EventEmitter {
     let mcVersion: string | boolean = false;
     if (this.version && !this.version.toLowerCase().includes('auto')) {
       const v = this.version;
-      if (v.includes('1.21.11')) mcVersion = '1.21.4'; // Fallback to 1.21.4 since .11 doesn't exist
+      if (v.includes('1.21.11')) mcVersion = '1.21.11';
       else if (v.includes('1.21.4')) mcVersion = '1.21.4';
       else if (v.includes('1.21.1')) mcVersion = '1.21.1';
-      else if (v.includes('1.21')) mcVersion = '1.21.4';
+      else if (v.includes('1.21')) mcVersion = '1.21.11';
       else if (v.includes('1.20.4')) mcVersion = '1.20.4';
       else if (v.includes('1.20.1')) mcVersion = '1.20.1';
       else if (v.includes('1.20')) mcVersion = '1.20.4';

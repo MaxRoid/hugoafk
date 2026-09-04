@@ -39,7 +39,7 @@ clientsRouter.post('/', async (req: Request, res: Response) => {
       name,
       server,
       port: Number(port) || 25565,
-      version: version || 'Minecraft 1.21.4',
+      version: version || 'Minecraft 1.21.11',
       authMethod: authMethod || 'Microsoft',
       autoStart: Boolean(autoStart),
       autoReconnect: autoReconnect !== false,

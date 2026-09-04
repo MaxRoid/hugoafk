@@ -47,7 +47,7 @@ HugoAFK ist ein modernes, modulares Web-Dashboard und Server-Management-Panel zu
 | **Frontend** | React 19, Next.js 15, TypeScript, Tailwind CSS, Lucide Icons |
 | **Backend** | Node.js 24, TypeScript, Express, Socket.IO |
 | **Datenbank** | Native SQLite 3 via `node:sqlite` (kein node-gyp oder C++-Compiler nötig) |
-| **Minecraft** | Mineflayer, Minecraft 1.21.4, Microsoft Authentication |
+| **Minecraft** | Mineflayer, Minecraft 1.21.11, Microsoft Authentication |
 | **Auth** | Discord OAuth 2.0, Google OAuth 2.0, JWT & Salted PBKDF2 Hashing |
 
 ---
