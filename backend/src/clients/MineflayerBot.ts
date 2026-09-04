@@ -71,7 +71,7 @@ export class MineflayerBot extends EventEmitter {
     this.runtimeSeconds = clientData.runtimeSeconds || 0;
   }
 
-  public log(level: LogLevel, message: string) {
+  public log(level: 'INFO' | 'WARN' | 'ERROR' | 'CHAT' | 'DEBUG', message: string) {
     const timestamp = new Date().toTimeString().split(' ')[0];
     const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
 
