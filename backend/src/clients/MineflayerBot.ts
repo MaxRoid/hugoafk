@@ -264,6 +264,15 @@ export class MineflayerBot extends EventEmitter {
   private setupBotListeners() {
     if (!this.bot) return;
 
+    if (this.bot._client) {
+      this.bot._client.on('session', (session: any) => {
+        this.pendingDeviceCode = null;
+        const playerName = session?.selectedProfile?.name || this.name;
+        this.log('INFO', `Microsoft-Login erfolgreich bestätigt! Angemeldet als "${playerName}". Verbinde mit Server...`);
+        this.emit('client:update', { clientId: this.id, deviceCode: null });
+      });
+    }
+
     this.bot.on('login', () => {
       this.pendingDeviceCode = null;
       this.log('INFO', `Handshake successful. Joining world (${this.server}:${this.port})...`);
