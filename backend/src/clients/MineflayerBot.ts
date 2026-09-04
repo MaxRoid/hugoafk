@@ -352,6 +352,31 @@ export class MineflayerBot extends EventEmitter {
         if (meta.name === 'login') {
           this.log('INFO', 'Spielwelt-Login empfangen! Lade Chunks & Spawne Bot-Entität...');
         }
+
+        // Auto-accept server resource packs (all MC versions)
+        if (
+          meta.name === 'resource_pack_send' ||
+          meta.name === 'add_resource_pack_notify' ||
+          meta.name === 'add_resource_pack'
+        ) {
+          this.log('INFO', 'Server-Resourcepack erkannt. Wird automatisch akzeptiert...');
+          try {
+            const uuid = data.uuid || '';
+            const hash = data.hash || '';
+            // Status 3 = ACCEPTED
+            this.bot._client.write('resource_pack_receive', { uuid, hash, result: 3 });
+            // Status 0 = SUCCESSFULLY_LOADED
+            setTimeout(() => {
+              try {
+                this.bot?._client?.write('resource_pack_receive', { uuid, hash, result: 0 });
+                this.log('INFO', 'Resourcepack erfolgreich akzeptiert.');
+              } catch {}
+            }, 200);
+          } catch (e: any) {
+            this.log('WARN', `Resourcepack-Antwort fehlgeschlagen: ${e?.message}`);
+          }
+        }
+
         if (meta.name === 'disconnect' || meta.name === 'kick_disconnect') {
           let reason = data?.reason;
           try {
