@@ -28,12 +28,13 @@ if [ -d "$PROJECT_DIR" ]; then
 fi
 
 echo -e "Willkommen! Ich werde nun alle nötigen Daten für dein Dashboard abfragen.\n"
+echo -e "Tipp: Lass ein Feld einfach leer und drücke Enter, wenn du es nicht nutzen willst.\n"
 
 # ========================================================
 # Konfigurations-Abfragen
 # ========================================================
 # 1. SSL & Domain
-echo -e "\n\e[33m[1. Domain & Webserver]\e[0m"
+echo -e "\e[33m[1. Domain & Webserver]\e[0m"
 read -p "Möchtest du SSL (HTTPS) mit einer Domain einrichten? (y/n): " SETUP_SSL
 if [[ "$SETUP_SSL" =~ ^[Yy]$ ]]; then
     read -p "Bitte gib deine Domain ein (z.B. hugo.deinedomain.de): " DOMAIN_NAME
@@ -44,13 +45,20 @@ else
     BASE_URL="http://$SERVER_IP:3000"
 fi
 
-# 2. API Keys & Discord
+# 2. Discord
 echo -e "\n\e[33m[2. Discord OAuth & Admin Setup]\e[0m"
 read -p "Discord Client ID: " DISCORD_CLIENT_ID
 read -p "Discord Client Secret: " DISCORD_CLIENT_SECRET
-read -p "Deine Discord Owner ID: " DISCORD_OWNER_ID
+read -p "Deine Discord Owner ID (Für Admin Rechte): " DISCORD_OWNER_ID
 
-echo -e "\n\e[33m[3. Gemini AI Setup]\e[0m"
+# 3. Google
+echo -e "\n\e[33m[3. Google OAuth & Admin Setup (Optional)]\e[0m"
+read -p "Google Client ID: " GOOGLE_CLIENT_ID
+read -p "Google Client Secret: " GOOGLE_CLIENT_SECRET
+read -p "Deine Google E-Mail (Für Admin Rechte): " OWNER_EMAIL
+
+# 4. Gemini
+echo -e "\n\e[33m[4. Gemini AI Setup]\e[0m"
 read -p "Gemini API Key: " GEMINI_API_KEY
 
 echo -e "\n\e[32mPerfekt! Installation beginnt in 3 Sekunden...\e[0m"
@@ -85,20 +93,39 @@ cd "$PROJECT_DIR"
 # ========================================================
 # .env Generierung
 # ========================================================
-echo -e "\n\e[36m[Schritt 4] Generiere Konfigurationsdateien...\e[0m"
+echo -e "\n\e[36m[Schritt 4] Generiere KOMPLETTE Konfigurationsdateien...\e[0m"
 
 RANDOM_JWT=$(openssl rand -hex 32)
 cat > .env <<EOF
+# ==========================================
+# HugoAFK Configuration
+# ==========================================
 PORT=3001
 FRONTEND_URL=$BASE_URL
 DATABASE_PATH=../data/hugoafk.sqlite
 JWT_SECRET=$RANDOM_JWT
+
+# ==========================================
+# OAuth 2.0 Providers
+# ==========================================
 DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID
 DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET
+
+GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+
+# ==========================================
+# Administrator & Owner Permissions
+# ==========================================
 DISCORD_OWNER_ID=$DISCORD_OWNER_ID
+OWNER_EMAIL=$OWNER_EMAIL
+
+# ==========================================
+# SSL Native (Disabled because Nginx handles it)
+# ==========================================
 SSL_ENABLED=false
 EOF
-echo "✅ Backend .env erstellt."
+echo "✅ Backend .env erstellt (inklusive Google)."
 
 mkdir -p frontend
 cat > frontend/.env <<EOF
