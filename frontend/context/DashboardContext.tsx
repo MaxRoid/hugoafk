@@ -283,6 +283,9 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [loadCurrentUser]);
 
   // Load all initial data once user is logged in
+  // Track whether this is the first load (full replace) vs subsequent syncs (merge)
+  const isInitialLoadDone = useRef(false);
+
   const loadData = useCallback(async () => {
     if (!currentUser) return;
     try {
@@ -294,7 +297,69 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
       ]);
 
       if (clientsRes.status === 'fulfilled') {
-        setClients(clientsRes.value.clients || []);
+        const apiClients = clientsRes.value.clients || [];
+
+        if (!isInitialLoadDone.current) {
+          // First load: use API data directly
+          setClients(apiClients);
+          isInitialLoadDone.current = true;
+        } else {
+          // Subsequent syncs: merge API data with live WebSocket state
+          setClients((prev) => {
+            const prevMap = new Map(prev.map((c) => [c.id, c]));
+
+            // Merge each API client with existing live state
+            const merged = apiClients.map((apiClient) => {
+              const existing = prevMap.get(apiClient.id);
+              if (!existing) return apiClient;
+
+              // Keep live status from WebSocket if the bot is actively running
+              // The API returns status from DB which may lag behind real-time WebSocket updates
+              const liveStatuses = ['online', 'starting', 'reconnecting'];
+              const keepLiveStatus =
+                liveStatuses.includes(existing.status) && apiClient.status !== 'online';
+              const status = keepLiveStatus ? existing.status : apiClient.status;
+
+              // Merge logs: combine API logs with any newer WebSocket logs
+              const apiLogIds = new Set(apiClient.logs.map((l) => l.id));
+              const newWsLogs = existing.logs.filter((l) => !apiLogIds.has(l.id));
+              const mergedLogs = [...apiClient.logs, ...newWsLogs].slice(-300);
+
+              // Merge chat: combine API chat with any newer WebSocket chat messages
+              const apiChatIds = new Set(apiClient.chatHistory.map((m) => m.id));
+              const newWsChat = existing.chatHistory.filter((m) => !apiChatIds.has(m.id));
+              const mergedChat = [...apiClient.chatHistory, ...newWsChat].slice(-200);
+
+              // Keep live inventory if the bot is online (API may return stale/empty)
+              const inventory =
+                existing.status === 'online' && existing.inventory.length > 0
+                  ? existing.inventory
+                  : apiClient.inventory;
+
+              // Keep live stats (ping, health, food, runtime) from WebSocket if online
+              const keepLiveStats = existing.status === 'online';
+
+              return {
+                ...apiClient,
+                status,
+                logs: mergedLogs,
+                chatHistory: mergedChat,
+                inventory,
+                ...(keepLiveStats && {
+                  ping: existing.ping || apiClient.ping,
+                  health: existing.health ?? apiClient.health,
+                  food: existing.food ?? apiClient.food,
+                  runtimeSeconds: Math.max(existing.runtimeSeconds || 0, apiClient.runtimeSeconds || 0),
+                  position: existing.position || apiClient.position,
+                }),
+                // Always preserve deviceCode from WebSocket
+                deviceCode: existing.deviceCode || apiClient.deviceCode,
+              };
+            });
+
+            return merged;
+          });
+        }
       }
       if (addonsRes.status === 'fulfilled') {
         setAddons(addonsRes.value.addons || []);
@@ -314,12 +379,13 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     loadData();
   }, [loadData]);
 
-  // Periodic background sync: keeps dashboard in sync (clients, logs, device codes, nodes) even if websocket drops
+  // Periodic background sync: keeps dashboard in sync but at a slower rate
+  // since WebSocket handles real-time updates. This is a fallback for missed events.
   useEffect(() => {
     if (!currentUser) return;
     const interval = setInterval(() => {
       loadData();
-    }, 2500);
+    }, 5000);
     return () => clearInterval(interval);
   }, [currentUser, loadData]);
 
