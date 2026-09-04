@@ -1065,9 +1065,9 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   useEffect(() => {
-    const waitingClient = clients.find(c => c.deviceCode && !popupShownRef.current.has(c.id));
+    const waitingClient = clients.find(c => c.deviceCode && !popupShownRef.current.has(c.deviceCode.code));
     if (waitingClient && waitingClient.deviceCode) {
-      popupShownRef.current.add(waitingClient.id);
+      popupShownRef.current.add(waitingClient.deviceCode.code);
       const code = waitingClient.deviceCode.code;
       const targetUrl = waitingClient.deviceCode.directUrl || `https://www.microsoft.com/link?otc=${code}`;
       
